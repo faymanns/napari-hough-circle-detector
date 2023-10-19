@@ -1,0 +1,32 @@
+name: napari-hough-circle-detector
+display_name: Hough circle detector
+# use 'hidden' to remove plugin from napari hub search results
+visibility: public
+# see https://napari.org/stable/plugins/manifest.html for valid categories
+categories: ["Annotation", "Segmentation", "Acquisition"]
+contributions:
+  commands:
+    - id: napari-hough-circle-detector.make_sample_data
+      python_name: napari_hough_circle_detector._sample_data:make_sample_data
+      title: Load sample data from Hough circle detector
+    - id: napari-hough-circle-detector.make_qwidget
+      python_name: napari_hough_circle_detector._widget:ExampleQWidget
+      title: Make example QWidget
+    - id: napari-hough-circle-detector.make_magic_widget
+      python_name: napari_hough_circle_detector._widget:example_magic_widget
+      title: Make example magic widget
+    - id: napari-hough-circle-detector.make_func_widget
+      python_name: napari_hough_circle_detector._widget:example_function_widget
+      title: Make example function widget
+  sample_data:
+    - command: napari-hough-circle-detector.make_sample_data
+      display_name: Hough circle detector
+      key: unique_id.1
+  widgets:
+    - command: napari-hough-circle-detector.make_qwidget
+      display_name: Example QWidget
+    - command: napari-hough-circle-detector.make_magic_widget
+      display_name: Example Magic Widget
+    - command: napari-hough-circle-detector.make_func_widget
+      autogenerate: true
+      display_name: Example Function Widget
