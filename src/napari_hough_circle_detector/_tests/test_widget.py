@@ -1,36 +1,58 @@
 import numpy as np
+import pytest
 
-from napari_hough_circle_detector import ExampleQWidget, example_magic_widget
+from napari_hough_circle_detector import CircleDetector
 
 
-# make_napari_viewer is a pytest fixture that returns a napari viewer object
-# capsys is a pytest fixture that captures stdout and stderr output streams
-def test_example_q_widget(make_napari_viewer, capsys):
-    # make viewer and add an image layer using our fixture
+@pytest.fixture
+def example_img():
+    img = np.zeros((200, 200), dtype=np.uint8)
+    xx, yy = np.meshgrid(np.arange(200), np.arange(200))
+    for x0, y0, r in (
+        (20, 70, 10),
+        (80, 120, 30),
+        (150, 50, 40),
+        (170, 170, 20),
+    ):
+        rr = np.sqrt((xx - x0) ** 2 + (yy - y0) ** 2)
+        img[rr < r] = 255
+    return img
+
+
+def test_circle_detector_widget(make_napari_viewer, example_img):
     viewer = make_napari_viewer()
-    viewer.add_image(np.random.random((100, 100)))
+    widget = CircleDetector(viewer)
 
-    # create our widget, passing in the viewer
-    my_widget = ExampleQWidget(viewer)
+    assert widget._image_layer_combo.value is None
 
-    # call our widget method
-    my_widget._on_click()
+    # Add an image
+    layer_name = "Test"
+    viewer.add_image(example_img, name=layer_name)
 
-    # read captured output and check that it's as we expected
-    captured = capsys.readouterr()
-    assert captured.out == "napari has 1 layers\n"
+    # Select the new layer
+    widget._image_layer_combo.reset_choices()
+    widget._image_layer_combo.value = viewer.layers[layer_name]
+
+    # Median filter
+    widget._median_filter_slider.value = 3
+    filtered = viewer.layers[f"{layer_name}_median_filtered"]
+    assert filtered.data.shape == viewer.layers[layer_name].data.shape
+
+    points_layer = viewer.layers[f"{layer_name}_circles"]
+    _validate_detected_circles(points_layer, widget)
 
 
-def test_example_magic_widget(make_napari_viewer, capsys):
-    viewer = make_napari_viewer()
-    layer = viewer.add_image(np.random.random((100, 100)))
+def _validate_detected_circles(layer, widget):
+    points = layer.data
 
-    # this time, our widget will be a MagicFactory or FunctionGui instance
-    my_widget = example_magic_widget()
+    # Check minimum distance
+    dx = points[:, 0][None, :] - points[:, 0][:, None]
+    dy = points[:, 1][None, :] - points[:, 1][:, None]
+    dist = np.sqrt(dx**2 + dy**2)[np.triu_indices(dx.shape[0], k=1)]
+    assert np.all(dist > widget._min_dist_slider.value)
 
-    # if we "call" this object, it'll execute our function
-    my_widget(viewer.layers[0])
+    # Check minimum radius
+    assert np.all(layer.size > widget._min_radius_slider.value)
 
-    # read captured output and check that it's as we expected
-    captured = capsys.readouterr()
-    assert captured.out == f"you have selected {layer}\n"
+    # Check maximum radius
+    assert np.all(layer.size < widget._max_radius_slider.value)
