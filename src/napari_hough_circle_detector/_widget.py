@@ -53,12 +53,7 @@ class CircleDetector(Container):
         )
         self._min_dist_slider.min = 1
         self._min_dist_slider.max = 200
-
-        self._min_dist_slider = create_widget(
-            label="Minimum distance", annotation=int, widget_type="IntSlider"
-        )
-        self._min_dist_slider.min = 1
-        self._min_dist_slider.max = 200
+        self._min_dist_slider.value = 50
 
         self._param1_slider = create_widget(
             label="Edge detection parameter",
@@ -81,12 +76,14 @@ class CircleDetector(Container):
         )
         self._min_radius_slider.min = 1
         self._min_radius_slider.max = 300
+        self._min_radius_slider.value = 10
 
         self._max_radius_slider = create_widget(
             label="Maximum radius", annotation=int, widget_type="IntSlider"
         )
         self._max_radius_slider.min = 1
         self._max_radius_slider.max = 500
+        self._max_radius_slider.value = 200
 
         self._export_title = Label(label="Export")
 
